@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   listDirectory, readFile, writeFile, createFile, createDirectory, 
@@ -10,16 +9,13 @@ import {
 } from '../utils/processManager';
 import { getSystemInfo, formatUptime } from '../utils/systemInfo';
 
-// Define command history type
 interface CommandHistoryItem {
   command: string;
   output: React.ReactNode;
   isError?: boolean;
 }
 
-// Terminal component
 const Terminal: React.FC = () => {
-  // State
   const [input, setInput] = useState<string>('');
   const [history, setHistory] = useState<CommandHistoryItem[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -29,10 +25,8 @@ const Terminal: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Boot sequence effect
   useEffect(() => {
     const bootSequence = async () => {
-      // Initial boot messages
       addToHistory({
         command: '',
         output: <div className="text-green font-bold">MINI-OS BOOT SEQUENCE INITIATED</div>
@@ -83,7 +77,6 @@ const Terminal: React.FC = () => {
       await delay(500);
       setBootProgress(100);
       
-      // Boot complete
       addToHistory({
         command: '',
         output: (
@@ -97,7 +90,6 @@ const Terminal: React.FC = () => {
       
       setBootComplete(true);
       
-      // Focus input field after boot
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -106,14 +98,12 @@ const Terminal: React.FC = () => {
     bootSequence();
   }, []);
 
-  // Auto-scroll to bottom of terminal
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [history]);
 
-  // Auto-focus input when clicking on terminal
   useEffect(() => {
     const handleClick = () => {
       if (inputRef.current && bootComplete) {
@@ -132,40 +122,32 @@ const Terminal: React.FC = () => {
     };
   }, [bootComplete]);
 
-  // Helper utility for boot sequence
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Add command and output to history
   const addToHistory = (item: CommandHistoryItem) => {
     setHistory(prev => [...prev, item]);
   };
 
-  // Handle command submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!input.trim()) return;
     
-    // Add command to history arrays
     setCommandHistory(prev => [...prev, input]);
     setHistoryIndex(-1);
     
-    // Process the command
     const cmd = input.trim();
     const output = executeCommand(cmd);
     
-    // Add to display history
     addToHistory({
       command: cmd,
       output,
       isError: false
     });
     
-    // Clear input
     setInput('');
   };
 
-  // Handle keyboard navigation for command history
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -190,12 +172,10 @@ const Terminal: React.FC = () => {
     }
   };
 
-  // Handle tab completion
   const handleTabCompletion = () => {
     const parts = input.split(' ');
     const lastPart = parts[parts.length - 1];
     
-    // Only auto-complete file/directory names
     if (parts.length > 1 || input.endsWith(' ')) {
       const dir = listDirectory();
       if (dir) {
@@ -204,7 +184,6 @@ const Terminal: React.FC = () => {
         );
         
         if (possibleMatches.length === 1) {
-          // Complete with the single match
           if (parts.length === 1 && !input.endsWith(' ')) {
             setInput(possibleMatches[0].name);
           } else {
@@ -212,7 +191,6 @@ const Terminal: React.FC = () => {
             setInput(parts.join(' '));
           }
         } else if (possibleMatches.length > 1) {
-          // Show all possible completions
           addToHistory({
             command: '',
             output: (
@@ -230,7 +208,6 @@ const Terminal: React.FC = () => {
     }
   };
 
-  // Execute command and return output
   const executeCommand = (command: string): React.ReactNode => {
     const [cmd, ...args] = command.split(' ').filter(Boolean);
     
@@ -295,7 +272,7 @@ const Terminal: React.FC = () => {
             return <div className="text-red">cd: {path}: No such directory</div>;
           }
           
-          return null; // No output on success
+          return null;
         } catch (error) {
           return <div className="text-red">cd: An error occurred</div>;
         }
@@ -321,7 +298,25 @@ const Terminal: React.FC = () => {
         }
 
       case 'echo':
-        return <div>{args.join(' ')}</div>;
+        if (args.length < 2 || args[0] !== '>' && args[0] !== '>>') {
+          return <div>{args.join(' ')}</div>;
+        }
+        
+        try {
+          const fileName = args[1];
+          const content = args.slice(2).join(' ');
+          const append = args[0] === '>>';
+          
+          const success = writeFile(fileName, content, append);
+          
+          if (!success) {
+            return <div className="text-red">echo: Failed to write to {fileName}</div>;
+          }
+          
+          return null;
+        } catch (error) {
+          return <div className="text-red">echo: An error occurred</div>;
+        }
 
       case 'touch':
         try {
@@ -329,13 +324,13 @@ const Terminal: React.FC = () => {
             return <div className="text-red">touch: missing file operand</div>;
           }
           
-          const success = createFile(args[0], '');
+          const success = createFile(args[0]);
           
           if (!success) {
             return <div className="text-yellow">touch: {args[0]}: File already exists</div>;
           }
           
-          return null; // No output on success
+          return null;
         } catch (error) {
           return <div className="text-red">touch: An error occurred</div>;
         }
@@ -352,7 +347,7 @@ const Terminal: React.FC = () => {
             return <div className="text-red">mkdir: cannot create directory '{args[0]}': Already exists</div>;
           }
           
-          return null; // No output on success
+          return null;
         } catch (error) {
           return <div className="text-red">mkdir: An error occurred</div>;
         }
@@ -369,7 +364,7 @@ const Terminal: React.FC = () => {
             return <div className="text-red">rm: cannot remove '{args[0]}': No such file or directory</div>;
           }
           
-          return null; // No output on success
+          return null;
         } catch (error) {
           return <div className="text-red">rm: An error occurred</div>;
         }
@@ -453,10 +448,8 @@ const Terminal: React.FC = () => {
       case 'date':
         return <div>{new Date().toString()}</div>;
 
-      // Handle program execution with arguments
       default:
         if (cmd) {
-          // Create a new process for the command
           createProcess(cmd);
           
           return <div className="text-red">Command not found: {cmd}</div>;
@@ -467,7 +460,6 @@ const Terminal: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Boot progress bar (only shown during boot) */}
       {!bootComplete && (
         <div className="w-full bg-gray-700 h-2 mb-2">
           <div 
@@ -477,14 +469,12 @@ const Terminal: React.FC = () => {
         </div>
       )}
       
-      {/* Terminal output area */}
       <div 
         ref={terminalRef}
         className="flex-1 overflow-y-auto p-4 font-mono text-sm"
       >
         {history.map((item, i) => (
           <div key={i} className="mb-2">
-            {/* Command prompt */}
             {item.command && (
               <div className="flex items-center mb-1">
                 <span className="text-green mr-1">user@miniOS</span>
@@ -495,14 +485,12 @@ const Terminal: React.FC = () => {
               </div>
             )}
             
-            {/* Command output */}
             <div className={`ml-0 ${item.isError ? 'text-red' : ''}`}>
               {item.output}
             </div>
           </div>
         ))}
         
-        {/* Current command prompt */}
         {bootComplete && (
           <div className="flex items-center">
             <span className="text-green mr-1">user@miniOS</span>

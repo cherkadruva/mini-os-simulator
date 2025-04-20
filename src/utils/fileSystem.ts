@@ -1,4 +1,3 @@
-
 import { FileSystemEntry } from '../types';
 
 // Initial file system structure
@@ -323,20 +322,27 @@ export const readFile = (name: string): string | null => {
   return file.content;
 };
 
-export const writeFile = (name: string, content: string): boolean => {
+export const writeFile = (name: string, content: string = '', append: boolean = false): boolean => {
   const current = getCurrentDirectory();
   
-  const file = current.children?.find(entry => entry.name === name && entry.type === 'file');
-  
-  if (!file) {
-    return createFile(name, content);
+  if (!current.children) {
+    current.children = [];
   }
   
-  file.content = content;
-  file.size = content.length;
-  file.modified = Date.now();
+  const existingFile = current.children.find(entry => entry.name === name && entry.type === 'file');
   
-  return true;
+  if (existingFile) {
+    if (append && existingFile.content) {
+      existingFile.content += '\n' + content;
+    } else {
+      existingFile.content = content;
+    }
+    existingFile.size = existingFile.content.length;
+    existingFile.modified = Date.now();
+    return true;
+  }
+  
+  return createFile(name, content);
 };
 
 export const deleteEntry = (name: string): boolean => {
