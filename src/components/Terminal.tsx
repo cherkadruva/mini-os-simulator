@@ -473,14 +473,26 @@ const Terminal: React.FC = () => {
           if (!args[0]) {
             return <div className="text-red">cat: missing file operand</div>;
           }
-          
-          const content = readFile(args[0]);
-          
-          if (content === null) {
-            return <div className="text-red">cat: {args[0]}: No such file</div>;
+
+          // First try reading from the virtual file system
+          const virtualContent = readFile(args[0]);
+          if (virtualContent !== null) {
+            return <div className="whitespace-pre-wrap">{virtualContent}</div>;
+          }
+
+          // If file not found in virtual system and we have a synced directory
+          if (systemDirectory) {
+            const targetFile = systemDirectory.files.find(f => f.name === args[0]);
+            if (targetFile) {
+              return <div className="text-yellow">
+                Cannot display content of local file '{args[0]}'. 
+                Browser security restrictions prevent direct file content access.
+                Use 'lsreal' to view file metadata instead.
+              </div>;
+            }
           }
           
-          return <div className="whitespace-pre-wrap">{content}</div>;
+          return <div className="text-red">cat: {args[0]}: No such file</div>;
         } catch (error) {
           return <div className="text-red">cat: An error occurred</div>;
         }
@@ -715,7 +727,9 @@ const Terminal: React.FC = () => {
           className="hidden" 
           onChange={handleSystemDirectorySelect} 
           multiple 
+          // @ts-ignore
           webkitdirectory="true" 
+          // @ts-ignore
           directory="true"
         />
       </div>
