@@ -15,6 +15,16 @@ interface CommandHistoryItem {
   isError?: boolean;
 }
 
+interface SystemDirectory {
+  path: string;
+  files: {
+    name: string;
+    size: number;
+    type: string;
+    lastModified: string;
+  }[];
+}
+
 const Terminal: React.FC = () => {
   const [input, setInput] = useState<string>('');
   const [history, setHistory] = useState<CommandHistoryItem[]>([]);
@@ -22,9 +32,11 @@ const Terminal: React.FC = () => {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [bootComplete, setBootComplete] = useState<boolean>(false);
   const [bootProgress, setBootProgress] = useState<number>(0);
+  const [systemDirectory, setSystemDirectory] = useState<SystemDirectory | null>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dirInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const bootSequence = async () => {
@@ -170,6 +182,74 @@ const Terminal: React.FC = () => {
     });
   };
 
+  const handleSystemDirectorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // This is a simulation - browsers can't actually access directories directly
+    // We're getting the files selected from the directory input
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      addToHistory({
+        command: '',
+        output: <div className="text-yellow">No directory selected or empty directory</div>
+      });
+      return;
+    }
+
+    // Try to determine the common parent path (not fully reliable due to security restrictions)
+    let commonPath = "";
+    try {
+      // This is a simulation - in reality, we can't get the full path due to security restrictions
+      // We'll take the first file's name for simulation purposes
+      const firstFile = files[0];
+      commonPath = firstFile.webkitRelativePath.split('/')[0] || "selected-directory";
+    } catch (error) {
+      commonPath = "selected-directory";
+    }
+
+    const fileList = Array.from(files).map(file => ({
+      name: file.name,
+      size: file.size,
+      type: file.type || 'unknown',
+      lastModified: new Date(file.lastModified).toLocaleString()
+    }));
+
+    // Save the system directory context
+    setSystemDirectory({
+      path: commonPath,
+      files: fileList
+    });
+
+    addToHistory({
+      command: '',
+      output: (
+        <div>
+          <div className="text-green font-bold mb-2">
+            Connected to system directory: {commonPath}
+          </div>
+          <div className="text-yellow font-bold">Files available ({fileList.length}):</div>
+          <div className="grid grid-cols-4 gap-2 font-bold mb-1">
+            <div>NAME</div>
+            <div>SIZE</div>
+            <div>TYPE</div>
+            <div>MODIFIED</div>
+          </div>
+          {fileList.slice(0, 10).map((file, i) => (
+            <div key={i} className="grid grid-cols-4 gap-2">
+              <div className="text-cyan">{file.name}</div>
+              <div>{formatFileSize(file.size)}</div>
+              <div>{file.type}</div>
+              <div>{file.lastModified}</div>
+            </div>
+          ))}
+          {fileList.length > 10 && (
+            <div className="mt-2 text-muted-foreground">
+              ... and {fileList.length - 10} more files
+            </div>
+          )}
+        </div>
+      )
+    });
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -273,6 +353,49 @@ const Terminal: React.FC = () => {
           return <div className="text-red">Error accessing local files: {String(error)}</div>;
         }
 
+      case 'syncdir':
+        try {
+          if (dirInputRef.current) {
+            dirInputRef.current.click();
+            return <div>Select a directory to connect...</div>;
+          }
+          return <div className="text-red">Could not access directory picker</div>;
+        } catch (error) {
+          return <div className="text-red">Error accessing system directory: {String(error)}</div>;
+        }
+
+      case 'pwdreal':
+        if (systemDirectory) {
+          return <div className="text-green">{systemDirectory.path}</div>;
+        } else {
+          return <div className="text-yellow">Not connected to any system directory. Use 'syncdir' to connect.</div>;
+        }
+
+      case 'lsreal':
+        if (!systemDirectory) {
+          return <div className="text-yellow">Not connected to any system directory. Use 'syncdir' to connect.</div>;
+        }
+        
+        return (
+          <div>
+            <div className="text-green mb-2">Listing files in system directory: {systemDirectory.path}</div>
+            <div className="grid grid-cols-4 gap-2 font-bold mb-1">
+              <div>NAME</div>
+              <div>SIZE</div>
+              <div>TYPE</div>
+              <div>MODIFIED</div>
+            </div>
+            {systemDirectory.files.map((file, i) => (
+              <div key={i} className="grid grid-cols-4 gap-2">
+                <div className="text-cyan">{file.name}</div>
+                <div>{formatFileSize(file.size)}</div>
+                <div>{file.type}</div>
+                <div>{file.lastModified}</div>
+              </div>
+            ))}
+          </div>
+        );
+
       case 'help':
         return (
           <div className="space-y-1">
@@ -292,6 +415,9 @@ const Terminal: React.FC = () => {
               <div><span className="text-cyan">sysinfo</span> - Display system information</div>
               <div><span className="text-cyan">date</span> - Show the current date and time</div>
               <div><span className="text-cyan">localfiles</span> - Access files from your local system</div>
+              <div><span className="text-cyan">syncdir</span> - Connect to a system directory</div>
+              <div><span className="text-cyan">pwdreal</span> - Show connected system directory</div>
+              <div><span className="text-cyan">lsreal</span> - List files in connected system directory</div>
               <div><span className="text-cyan">help</span> - Display this help message</div>
             </div>
           </div>
@@ -580,6 +706,17 @@ const Terminal: React.FC = () => {
           className="hidden" 
           onChange={handleLocalFileSelect} 
           multiple 
+        />
+        
+        {/* Hidden directory input for accessing system directory */}
+        <input 
+          type="file" 
+          ref={dirInputRef} 
+          className="hidden" 
+          onChange={handleSystemDirectorySelect} 
+          multiple 
+          webkitdirectory="true" 
+          directory="true"
         />
       </div>
     </div>
