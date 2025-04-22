@@ -1,72 +1,79 @@
 
-## Project info
+# MiniOS - Interactive Web-Based OS Simulator
 
-**URL**: https://lovable.dev/projects/71fc04ae-d905-46e7-af64-9675c4f37e01
+## 🖥️ Project Overview
 
-## How can I edit this code?
+MiniOS is an interactive, web-based operating system simulator that provides a fascinating glimpse into how operating systems work. Built with modern web technologies, this project offers users a terminal-like experience with simulated system components.
 
-There are several ways of editing your application.
+## 🌟 Features
 
-**Use Lovable**
+### Terminal Interface
+- Full-featured terminal with command-line interface
+- Supports various Unix-like commands
+- Interactive command history and tab completion
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/71fc04ae-d905-46e7-af64-9675c4f37e01) and start prompting.
+### File System Simulation
+- Virtual file system with directory navigation
+- File creation, reading, and management
+- Local directory synchronization support
 
-Changes made via Lovable will be committed automatically to this repo.
+### Process Management
+- Real-time process listing
+- Process creation and termination
+- Simulated scheduling algorithms
 
-**Use your preferred IDE**
+### System Monitoring
+- Live CPU, memory, and disk usage tracking
+- Dynamic uptime display
+- Simulated system resource management
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Technologies Used
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Vite
 
-Follow these steps:
+## 📦 Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Installation
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/minios.git
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Navigate to project directory
+cd minios
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🎮 Usage
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Open the terminal in the web interface and explore commands like:
+- `ls`: List directory contents
+- `cd`: Change directory
+- `ps`: List running processes
+- `cat`: View file contents
+- `sysinfo`: Display system information
 
-**Use GitHub Codespaces**
+## 🤝 Contributing
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## What technologies are used for this project?
+## 📄 License
 
-This project is built with:
+This project is open-source and available under the MIT License.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🙌 Acknowledgments
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/71fc04ae-d905-46e7-af64-9675c4f37e01) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Inspired by the fascinating world of operating systems and terminal interfaces.
