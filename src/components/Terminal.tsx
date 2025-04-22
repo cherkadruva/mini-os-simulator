@@ -183,8 +183,6 @@ const Terminal: React.FC = () => {
   };
 
   const handleSystemDirectorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // This is a simulation - browsers can't actually access directories directly
-    // We're getting the files selected from the directory input
     const files = event.target.files;
     if (!files || files.length === 0) {
       addToHistory({
@@ -194,11 +192,8 @@ const Terminal: React.FC = () => {
       return;
     }
 
-    // Try to determine the common parent path (not fully reliable due to security restrictions)
     let commonPath = "";
     try {
-      // This is a simulation - in reality, we can't get the full path due to security restrictions
-      // We'll take the first file's name for simulation purposes
       const firstFile = files[0];
       commonPath = firstFile.webkitRelativePath.split('/')[0] || "selected-directory";
     } catch (error) {
@@ -212,7 +207,6 @@ const Terminal: React.FC = () => {
       lastModified: new Date(file.lastModified).toLocaleString()
     }));
 
-    // Save the system directory context
     setSystemDirectory({
       path: commonPath,
       files: fileList
@@ -418,6 +412,7 @@ const Terminal: React.FC = () => {
               <div><span className="text-cyan">syncdir</span> - Connect to a system directory</div>
               <div><span className="text-cyan">pwdreal</span> - Show connected system directory</div>
               <div><span className="text-cyan">lsreal</span> - List files in connected system directory</div>
+              <div><span className="text-cyan">clearstorage</span> - Reset file system to initial state</div>
               <div><span className="text-cyan">help</span> - Display this help message</div>
             </div>
           </div>
@@ -474,13 +469,11 @@ const Terminal: React.FC = () => {
             return <div className="text-red">cat: missing file operand</div>;
           }
 
-          // First try reading from the virtual file system
           const virtualContent = readFile(args[0]);
           if (virtualContent !== null) {
             return <div className="whitespace-pre-wrap">{virtualContent}</div>;
           }
 
-          // If file not found in virtual system and we have a synced directory
           if (systemDirectory) {
             const targetFile = systemDirectory.files.find(f => f.name === args[0]);
             if (targetFile) {
@@ -648,6 +641,14 @@ const Terminal: React.FC = () => {
       case 'date':
         return <div>{new Date().toString()}</div>;
 
+      case 'clearstorage':
+        try {
+          resetFileSystem();
+          return <div className="text-green">File system has been reset to its initial state.</div>;
+        } catch (error) {
+          return <div className="text-red">Error resetting file system.</div>;
+        }
+
       default:
         if (cmd) {
           createProcess(cmd);
@@ -711,7 +712,6 @@ const Terminal: React.FC = () => {
           </div>
         )}
         
-        {/* Hidden file input for accessing local files */}
         <input 
           type="file" 
           ref={fileInputRef} 
@@ -720,16 +720,13 @@ const Terminal: React.FC = () => {
           multiple 
         />
         
-        {/* Hidden directory input for accessing system directory */}
         <input 
           type="file" 
           ref={dirInputRef} 
           className="hidden" 
           onChange={handleSystemDirectorySelect} 
           multiple 
-          // @ts-ignore
           webkitdirectory="true" 
-          // @ts-ignore
           directory="true"
         />
       </div>
