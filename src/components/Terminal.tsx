@@ -24,6 +24,7 @@ const Terminal: React.FC = () => {
   const [bootProgress, setBootProgress] = useState<number>(0);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const bootSequence = async () => {
@@ -128,6 +129,55 @@ const Terminal: React.FC = () => {
     setHistory(prev => [...prev, item]);
   };
 
+  const handleLocalFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      addToHistory({
+        command: '',
+        output: <div className="text-yellow">No files selected</div>
+      });
+      return;
+    }
+
+    const fileList = Array.from(files).map(file => ({
+      name: file.name,
+      size: file.size,
+      type: file.type || 'unknown',
+      lastModified: new Date(file.lastModified).toLocaleString()
+    }));
+
+    addToHistory({
+      command: '',
+      output: (
+        <div>
+          <div className="text-yellow font-bold mb-2">Selected local files:</div>
+          <div className="grid grid-cols-4 gap-2 font-bold mb-1">
+            <div>NAME</div>
+            <div>SIZE</div>
+            <div>TYPE</div>
+            <div>MODIFIED</div>
+          </div>
+          {fileList.map((file, i) => (
+            <div key={i} className="grid grid-cols-4 gap-2">
+              <div className="text-cyan">{file.name}</div>
+              <div>{formatFileSize(file.size)}</div>
+              <div>{file.type}</div>
+              <div>{file.lastModified}</div>
+            </div>
+          ))}
+        </div>
+      )
+    });
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -212,6 +262,17 @@ const Terminal: React.FC = () => {
     const [cmd, ...args] = command.split(' ').filter(Boolean);
     
     switch (cmd.toLowerCase()) {
+      case 'localfiles':
+        try {
+          if (fileInputRef.current) {
+            fileInputRef.current.click();
+            return <div>Opening file picker...</div>;
+          }
+          return <div className="text-red">Could not access file picker</div>;
+        } catch (error) {
+          return <div className="text-red">Error accessing local files: {String(error)}</div>;
+        }
+
       case 'help':
         return (
           <div className="space-y-1">
@@ -230,6 +291,7 @@ const Terminal: React.FC = () => {
               <div><span className="text-cyan">clear</span> - Clear the terminal screen</div>
               <div><span className="text-cyan">sysinfo</span> - Display system information</div>
               <div><span className="text-cyan">date</span> - Show the current date and time</div>
+              <div><span className="text-cyan">localfiles</span> - Access files from your local system</div>
               <div><span className="text-cyan">help</span> - Display this help message</div>
             </div>
           </div>
@@ -510,6 +572,15 @@ const Terminal: React.FC = () => {
             </form>
           </div>
         )}
+        
+        {/* Hidden file input for accessing local files */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          onChange={handleLocalFileSelect} 
+          multiple 
+        />
       </div>
     </div>
   );
