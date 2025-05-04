@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   listDirectory, readFile, writeFile, createFile, createDirectory, 
-  deleteEntry, changeDirectory, getWorkingDirectoryPath 
+  deleteEntry, changeDirectory, getWorkingDirectoryPath, resetFileSystem
 } from '../utils/fileSystem';
 import { 
   getProcesses, createProcess, killProcess, suspendProcess, 
@@ -726,8 +726,8 @@ const Terminal: React.FC = () => {
           className="hidden" 
           onChange={handleSystemDirectorySelect} 
           multiple 
-          webkitdirectory="true" 
-          directory="true"
+          data-webkitdirectory=""
+          data-directory=""
         />
       </div>
     </div>
