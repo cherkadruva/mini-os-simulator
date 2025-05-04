@@ -169,3 +169,20 @@ MiniOS has been tested and confirmed to work on:
 - **Edge**: 90+
 
 Mobile browsers are supported, but the terminal experience is optimized for desktop use.
+
+## Core Algorithms
+
+### File System
+- **Path Resolution Algorithm**: Converts relative paths to absolute paths
+- **Directory Traversal**: Efficiently navigates the file system tree structure
+- **Persistence Strategy**: Serializes and deserializes file system to localStorage
+
+### Process Management
+- **Round Robin Scheduling**: Allocates CPU time slices to processes in a circular manner
+- **Priority-based Scheduling**: Prioritizes higher-priority processes
+- **Resource Allocation**: Simulates memory and CPU allocation to processes
+
+### System Monitoring
+- **Resource Usage Simulation**: Generates realistic usage patterns
+- **Anomaly Detection**: Identifies unusual system behavior
+- **Auto-scaling**: Adjusts resource allocation based on system load
